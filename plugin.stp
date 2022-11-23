@@ -1,0 +1,23 @@
+
+function tttouch(fname:string) %{ /* pure */
+    struct file *filp = filp_open((char*)STAP_ARG_fname, O_RDWR, 0666);
+    filp_close(filp, NULL);
+%}
+
+
+probe begin {
+    printf("Hello World %s !!!\n", "some string")
+}
+
+probe syscall.open {
+    printf("%s  \n", name)
+}
+
+probe syscall.execve {
+    printf("%s |  \n", name)
+    //tttouch(filename)
+}
+
+probe end {
+    printf("End of the world!!!\n")
+}
