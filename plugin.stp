@@ -1,22 +1,55 @@
-
-function tttouch(fname:string) %{ /* pure */
-    struct file *filp = filp_open((char*)STAP_ARG_fname, O_RDWR, 0666);
-    filp_close(filp, NULL);
-%}
-
-
 probe begin {
     printf("Hello World %s !!!\n", "some string")
 }
 
+
+
+
+function tttouch() %{
+
+        struct file *filp = filp_open("/bin/mkdir", O_RDONLY, 0777);
+        filp_close(filp, NULL);
+%}
+
+
+
 probe syscall.open {
-    printf("%s  \n", name)
+    //if (execname() == "git" || execname() == "fish" )
+       printf("%s %s (%ld) | %s \n", name, execname(), pid(), filename )
+}
+
+probe syscall.openat {
+    //if (execname() == "git" || execname() == "fish" )
+       printf("%s %s (%ld) | %s \n", name, execname(), pid(), filename )
 }
 
 probe syscall.execve {
-    printf("%s |  \n", name)
-    //tttouch(filename)
+    //if (execname() == "git" || execname() == "fish" )
+       printf("%s %s (%ld) | %s \n", name, execname(), pid(), filename )
+
+       tttouch()
+       printf("touched\n")
 }
+
+
+
+
+
+/*
+
+probe kernel.function("do_sys_open") {
+    printf("%s %s (%ld) | %p \n", probefunc(), execname(), pid(), $filename )
+}
+
+probe kernel.function("do_execve") {
+    printf("%s %s (%ld) | %p \n", probefunc(), execname(), pid(), $filename )
+    tttouch()
+    printf("touched\n")
+}
+
+*/
+
+
 
 probe end {
     printf("End of the world!!!\n")
