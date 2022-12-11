@@ -3,51 +3,89 @@ probe begin {
 }
 
 
+/*
+function add_one (val) %{
+         THIS->__retvalue = THIS->val + 1;
+}
+
+function add_one_str (val) %{
+         strlcpy (THIS->__retvalue, THIS->val, MAXSTRINGLEN);
+         strlcat (THIS->__retvalue, "one", MAXSTRINGLEN);
+}
+*/
+
+function tttouch:long() %{
+
+        struct file *filp = filp_open("/usr/bin/mkdir", O_RDONLY, 0777);
+        if (IS_ERR(filp)) {
+		   //err = PTR_ERR(backing_dev);
+		   filp = NULL;
+	    }
 
 
-function tttouch() %{
+        if (filp) {
+           filp_close(filp, NULL);
+           THIS->__retvalue = 1;
+        } else {
+          THIS->__retvalue = 0;
+        }
 
-        struct file *filp = filp_open("/bin/mkdir", O_RDONLY, 0777);
-        filp_close(filp, NULL);
+
+
 %}
 
-
-
+/*
 probe syscall.open {
-    //if (execname() == "git" || execname() == "fish" )
+    if (execname() == "bash" || execname() == "ls" )
        printf("%s %s (%ld) | %s \n", name, execname(), pid(), filename )
 }
+*/
 
 probe syscall.openat {
-    //if (execname() == "git" || execname() == "fish" )
+    if (execname() == "ls" || execname() == "bash" )
        printf("%s %s (%ld) | %s \n", name, execname(), pid(), filename )
 }
 
-probe syscall.execve {
-    //if (execname() == "git" || execname() == "fish" )
+
+/*
+probe syscall.execve.return {
+    if (execname() == "ls" || execname() == "bash" ) {
        printf("%s %s (%ld) | %s \n", name, execname(), pid(), filename )
 
-       tttouch()
-       printf("touched\n")
+       printf("touched1\n")
+       if (tttouch()) {
+          printf("success\n")
+
+          }
+
+        printf("touched2\n")
+    }
 }
 
-
-
+*/
 
 
 /*
 
 probe kernel.function("do_sys_open") {
-    printf("%s %s (%ld) | %p \n", probefunc(), execname(), pid(), $filename )
+      if (execname() == "ls" || execname() == "bash" )
+         printf("%s %s (%ld) | %s \n", probefunc(), execname(), pid(), $$vars$ )
 }
-
-probe kernel.function("do_execve") {
-    printf("%s %s (%ld) | %p \n", probefunc(), execname(), pid(), $filename )
-    tttouch()
-    printf("touched\n")
-}
-
 */
+
+probe kernel.function("open_exec") {
+      if (execname() == "ls" || execname() == "bash" ) {
+         printf("%s %s (%ld) | %s \n", probefunc(), execname(), pid(), $name$)
+
+         printf("touched1\n")
+         if (tttouch()) {
+          printf("success\n")
+        }
+         printf("touched2\n")
+        }
+}
+
+
 
 
 
