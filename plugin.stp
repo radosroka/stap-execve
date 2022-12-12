@@ -38,22 +38,12 @@ probe kernel.function("do_sys_open") {
 */
 
 
-/*
-probe syscall.execve.return {
+
+probe syscall.execve {
     if (execname() == "ls" || execname() == "bash" ) {
        printf("%s %s (%ld) | %s \n", name, execname(), pid(), filename )
-
-       printf("touched1\n")
-       if (tttouch()) {
-          printf("success\n")
-
-          }
-
-        printf("touched2\n")
     }
 }
-
-*/
 
 
 probe syscall.openat {
